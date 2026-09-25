@@ -1,0 +1,82 @@
+<!doctype html>
+<!--
+  No-install preview: runs the same src/*.tsx files straight in the browser.
+  Serve this folder (python3 -m http.server 5173) and open /preview.html.
+  With Node installed, use `npm install && npm run dev` instead.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KFUPM · Beyond Borders</title>
+    <meta name="description" content="Study at KFUPM in Dhahran, Saudi Arabia. A globally ranked STEM university with full scholarships for eligible international undergraduates." />
+    <link rel="icon" type="image/png" href="brand/kfupm-logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.3.1",
+          "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+          "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?external=react",
+          "framer-motion": "https://esm.sh/framer-motion@11.11.17?external=react,react-dom",
+          "lucide-react": "https://esm.sh/lucide-react@0.460.0?external=react"
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.2/babel.min.js"></script>
+    <style>body{background:#fbfaf2;margin:0}</style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      const cache = new Map();
+
+      async function fetchFirst(candidates) {
+        for (const url of candidates) {
+          const res = await fetch(url);
+          if (res.ok) return { url, text: await res.text() };
+        }
+        throw new Error('Module not found: ' + candidates[0]);
+      }
+
+      async function load(url) {
+        if (cache.has(url)) return cache.get(url);
+        const promise = (async () => {
+          const hasExt = /\.[a-z]+$/.test(new URL(url).pathname);
+          const { url: real, text } = await fetchFirst(hasExt ? [url] : [url + '.tsx', url + '.ts']);
+          let code = Babel.transform(text, {
+            filename: real,
+            presets: [
+              ['typescript', { isTSX: true, allExtensions: true }],
+              ['react', { runtime: 'automatic' }],
+            ],
+          }).code;
+          // drop CSS imports (handled below), resolve relative imports to blob modules
+          code = code.replace(/import\s+['"][^'"]+\.css['"];?/g, '');
+          const rel = [...code.matchAll(/from\s+['"](\.{1,2}\/[^'"]+)['"]/g)].map((m) => m[1]);
+          for (const spec of new Set(rel)) {
+            const blob = await load(new URL(spec, real).href);
+            code = code.split(`'${spec}'`).join(`'${blob}'`).split(`"${spec}"`).join(`"${blob}"`);
+          }
+          return URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+        })();
+        cache.set(url, promise);
+        return promise;
+      }
+
+      const css = await (await fetch('src/index.css')).text();
+      const style = document.createElement('style');
+      style.type = 'text/tailwindcss';
+      style.textContent = css.replace(/@import\s+["']tailwindcss["'];?/, '');
+      document.head.appendChild(style);
+      const tw = document.createElement('script');
+      tw.src = 'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.0.0';
+      document.head.appendChild(tw);
+
+      const entry = await load(new URL('src/main.tsx', location.href).href);
+      await import(entry);
+    </script>
+  </body>
+</html>
