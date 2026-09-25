@@ -21,9 +21,9 @@ export default function App() {
           <Services />
           <Work />
           <About />
-          <Scholarship />
           <CampusLife />
           <Stories />
+          <Scholarship />
         </main>
         <Footer />
         <ImageStudio />

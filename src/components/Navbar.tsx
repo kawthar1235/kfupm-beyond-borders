@@ -5,8 +5,8 @@ import { Menu, X } from 'lucide-react';
 const NAV_ITEMS = [
   { label: 'Why Saudi', href: '#why' },
   { label: 'Global', href: '#global' },
-  { label: 'Scholarship', href: '#scholarship' },
   { label: 'Campus Life', href: '#life' },
+  { label: 'Scholarship', href: '#scholarship' },
 ];
 
 export default function Navbar() {
