@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Brand palette: Delft Blue · Carolina Blue · Beige · Pistachio · Fern Green (light mode) */
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  --color-paper: #fbfaf2;      /* page background, a lighter Beige */
+  --color-night: #0f1638;      /* deep Delft, for photo overlays */
+  --color-delft: #1d2a62;      /* primary text */
+  --color-carolina: #87aece;
+  --color-beige: #f5f3d8;
+  --color-pistachio: #afd06e;
+  --color-fern: #437118;       /* accent text on light backgrounds */
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-delft);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-fern);
+    outline-offset: 3px;
+    border-radius: 9999px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
